@@ -21,12 +21,14 @@ Functionality:
  - Openning multiple tabs on the same browser will not create new user as it still contains the same cookie. Multiple users are supported via multiple browsers.
 
 How to setup:
+** Ensure cookies are cleared and all previously used tabs are closed before proceeding **
 1- Navigate to the main folder thats containing server.js using a console. Note that Node.js must be installed on the system before proceeding to next step.
 2- Run the server code by typing the command: node server    *Uppon successful server start, you will see the message "Server Running..."*
 3- Open a browser (Tested fully with Friefox and Chrome) and make sure that the browser accepts cookies. In the URL type: localhost:3000
 4- You will then see the chat application open up. 
 
 How to use:
+- Make sure all tabs are closed and browser cookies are cleared before running the server for a fresh start
 - Type everything as usual.
 - To change nickname: /nick nickname
 - to change color: /nickcolor Red   or /nickcolor ffffff   supports hex without the # and common color names. 
