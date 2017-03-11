@@ -1,0 +1,243 @@
+<html>
+<head>
+    <title> IO CHAT</title>
+    <script src = "http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src = "/socket.io/socket.io.js"></script>
+
+    <style>
+        /* Force scrollbars onto browser window */
+
+        table{
+            padding-left: 28px;
+            table-layout: fixed;
+
+        }
+
+        .username{
+            width: 200px;
+        }
+        .onlineUsers{
+            padding-left: 320px;
+        }
+
+        .dummyA {
+            display: inline-block;
+            max-height: 500px;
+            overflow: auto;
+        }
+        .dummyB{
+            display: inline-block;
+        }
+        /* Box styles */
+        .myBox {
+            display: table-cell;
+            color: white;
+            border: solid;
+            padding: 5px;
+            font: 24px/36px sans-serif;
+            width: 500px;
+            height: 500px;
+            overflow: auto;
+            background-color: #4d4d4d;
+            border-color: black;
+            vertical-align: bottom;
+
+
+
+        }
+        .myBox2 {
+            display: table-cell;
+            color: white;
+            border: solid;
+            padding: 5px;
+            font: 24px/36px sans-serif;
+            width: 300px;
+            height: 500px;
+            overflow: auto;
+            background-color: #4d4d4d;
+            border-color: black;
+        }
+        .mainDiv{
+            width: 900px;
+            height: 620px;
+            background-color:  #cccccc;
+            border-color: black;
+            border: solid;
+
+            overflow: hidden;
+
+        }
+        .parent{
+            padding-left: 30px;
+        }
+        input{
+            width: 840px;
+            height: 40px;
+            margin-left: 28px;
+            border: none;
+            border-bottom: 2px solid #4d4d4d;
+            font-size: large;
+        }
+        label{
+            color: black;
+            font-size: large;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            border: 1px solid yellowgreen;
+            border-radius: 10px;
+            background-color: white;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: yellowgreen;
+            border-radius: 10px;
+
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #88ba1c;
+        }
+
+
+
+    </style>
+</head>
+<body>
+<div class = "mainDiv">
+
+        <table>
+        <tr>
+
+            <td class = "username"><label id = "username">
+
+            </label></td>
+            <td class ="onlineUsers"><label>Users Online</label></td>
+        </tr>
+        </table>
+
+
+
+
+
+
+    <div class = "parent">
+        <div class = "dummyA" id="dummyA">
+            <div class="myBox" id = "chatArea">
+
+            </div>
+        </div>
+        <div class = "dummyB">
+            <div class="myBox2" id = "userArea">
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <form id = "messageForm">
+        <input type="text" id = "messageInput">
+        <input type="submit" style="position: absolute; left: -9999px"/>
+    </form>
+
+
+</div>
+<script>
+    $(function () {
+        var socket = io.connect();
+        var $messageForm = $("#messageForm");
+        var $message = $("#messageInput");
+        var $chat = $("#chatArea");
+        var $username = $("#username");
+        var $users = $("#userArea");
+
+
+        // $('#textArea').text('Hello world');
+        if(document.cookie.length == 0){
+            socket.emit("new user", "user");
+        }
+        else{
+            var userArr =document.cookie.split("=")[1]
+
+            socket.emit("existing user", userArr );
+        }
+
+        $messageForm.submit(function (e) {
+
+            e.preventDefault();
+
+            str = $message.val();
+
+            if (str.startsWith("/nickcolor ")){
+                n_str = str.replace("/nickcolor ", "");
+                socket.emit("set color", n_str);
+                socket.emit("syncColors");
+
+
+
+
+            }
+            else if(str.startsWith("/nick ")){
+                n_str = str.replace("/nick ", "");
+                socket.emit("set nickname", n_str);
+                socket.emit("syncUsers");
+            }
+            else{
+                socket.emit("send message", $message.val());
+
+            }
+
+            $message.val("");
+
+        });
+
+        function updateScroll(){
+            var element = document.getElementById("dummyA");
+            element.scrollTop = element.scrollHeight;
+        }
+        socket.on("new message", function (data) {
+            console.log("data: "+data);
+            if(typeof data.color == "undefined"){
+                data.color = "white";
+            }
+            console.log(data.color);
+
+
+            $chat.append(data.time +"  "+"<font color="+data.color+">"+ data.user_name +"</font>"+ ": "+data.msg+"</br>");
+            updateScroll();
+        });
+
+        socket.on("get username", function (data) {
+            $username.html("You are: <b>"+data.usr+"</b>");
+        });
+
+        socket.on("sync", function (data) {
+            console.log(data);
+            $chat.html(data);
+        });
+        socket.on("users", function (data) {
+            $users.text("");
+            for(i = 0; i<data.length; i++){
+                $users.append(data[i]+"</br>");
+            }
+        });
+
+        socket.on("add cookie", function (data) {
+            document.cookie = "user="+data+";expires=Fri, 2 Jun 2017 01:00:00 UTC;";
+            console.log(document.cookie);
+        });
+
+
+    })
+</script>
+
+
+</body>
+</html>
